@@ -29,9 +29,11 @@
 
 
 
-unsigned char password[4] = {'1','2','0','8'};
+unsigned char password[4] = {'1','2','3','4'};
 unsigned char input[5] = {'n' , 'n' , 'n' , 'n'};
 unsigned char disp[4] = {0xBF , 0xBF , 0xBF, 0xBF};
+
+
 
 
 
@@ -73,31 +75,6 @@ char GetKey(void)              // Get key from user
     return key;                  //when key pressed then return its value
 }
 
-
-void store(){
-    int enter = 0;
-    int cnt = 0;
-    while(!enter){
-        input[cnt] = GetKey();
-        if(input[cnt] == 'A') enter = 1;
-        else cnt += 1;
-    }
-
-}
-
-int checkPassword(){
-    int flag = 1;
-    for(int i = 0; i < 4; i++){
-        if (input[i] != password[i])
-            flag = 0;
-      
-    }
-    return flag;
-}
-
-
-
-
 unsigned char sevenSegmentDecoder(unsigned char a)
 {
  switch(a)
@@ -122,7 +99,10 @@ unsigned char sevenSegmentDecoder(unsigned char a)
  }
 }
 
-
+void displayBuild(int i){
+        disp[i] = sevenSegmentDecoder(input[i]);
+        
+    }
 
 void display(){
     PORTA = 0b00000001;
@@ -142,10 +122,80 @@ void display(){
     __delay_ms(1);
 }
 
-void displayBuild(int i){
-        disp[i] = sevenSegmentDecoder(input[i]);
-        
+void displayDefault(){
+    PORTA = 0b00000001;
+    PORTC = 0xBF;
+    __delay_ms(1);
+    
+    PORTA = 0b00000010;
+    PORTC = 0xBF;
+    __delay_ms(1);
+    
+    PORTA = 0b00000100;
+    PORTC = 0xBF;
+    __delay_ms(1);
+    
+    PORTA = 0b00001000;
+    PORTC = 0xBF;
+    __delay_ms(1);
+}
+
+void displayGood(){
+    PORTA = 0b00000001;
+    PORTC = 0x82;
+    __delay_ms(1);
+    
+    PORTA = 0b00000010;
+    PORTC = 0xC0;
+    __delay_ms(1);
+    
+    PORTA = 0b00000100;
+    PORTC = 0xC0;
+    __delay_ms(1);
+    
+    PORTA = 0b00001000;
+    PORTC = 0xA1;
+    __delay_ms(1);
+}
+
+
+void store(){
+    int enter = 0;
+    int cnt = 0;
+    while(!enter){
+        displayDefault();
+        input[cnt] = GetKey();
+        if(cnt <= 3){
+        displayBuild(cnt);
+        for(int i = 0; i < 32 ; i++ )
+        if(cnt <= 3) display();
+        }
+         
+        if(input[cnt] == 'A') enter = 1;
+        else cnt += 1;
     }
+
+}
+
+int checkPassword(){
+    int flag = 1;
+    for(int i = 0; i < 4; i++){
+        if (input[i] != password[i])
+            flag = 0;
+      
+    }
+    return flag;
+}
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -160,13 +210,11 @@ void main(void) {
     int flag;
     PORTE = 0b11111111;
     
-    instr:
+   
     display();
     store();
-    for(int i = 0; i < 4; i++){
-        display();
-        displayBuild(i);
-    }
+    
+        
     flag = checkPassword();
         
         if(flag) PORTE = 0b11111110;
@@ -174,8 +222,9 @@ void main(void) {
 
     while(1){
         
+        if (flag) displayGood();
+        else display();
         
-        display();
         
         
         
