@@ -32,6 +32,7 @@
 unsigned char password[4] = {'1','2','3','4'};
 unsigned char input[5] = {'n' , 'n' , 'n' , 'n'};
 unsigned char disp[4] = {0xBF , 0xBF , 0xBF, 0xBF};
+unsigned char def[4] = {0xBF , 0xBF , 0xBF, 0xBF};
 
 
 
@@ -140,23 +141,6 @@ void displayDefault(){
     __delay_ms(1);
 }
 
-void displayGood(){
-    PORTA = 0b00000001;
-    PORTC = 0x82;
-    __delay_ms(1);
-    
-    PORTA = 0b00000010;
-    PORTC = 0xC0;
-    __delay_ms(1);
-    
-    PORTA = 0b00000100;
-    PORTC = 0xC0;
-    __delay_ms(1);
-    
-    PORTA = 0b00001000;
-    PORTC = 0xA1;
-    __delay_ms(1);
-}
 
 
 void store(){
@@ -187,16 +171,11 @@ int checkPassword(){
     return flag;
 }
 
-
-
-
-
-
-
-
-
-
-
+int lock(){
+    char key = READ_SWITCHES();
+    if(key == 'B') return 1;
+    else return 0;
+}
 
 
 
@@ -210,7 +189,7 @@ void main(void) {
     int flag;
     PORTE = 0b11111111;
     
-   
+    label:
     display();
     store();
     
@@ -219,17 +198,34 @@ void main(void) {
         
         if(flag) PORTE = 0b11111110;
         else PORTE = 0b11111011;
+    
+        if(!flag){
+            for(int i = 0; i < 256; i++)
+            {
+                display();
+            }
+            for(int i = 0; i < 4; i++){
+                disp[i] = def[i];
+            }
+            PORTE = 0b11111111;
+            goto label;
+        }
 
     while(1){
         
-        if (flag) displayGood();
-        else display();
-        
-        
-        
-        
-        
-        
+      display();
+      int test = lock();
+      if(test) {
+          for(int i = 0; i < 4; i++){
+              disp[i] = def[i];
+          }
+          PORTE = 0b11111111;
+          goto label;
+      }
+      
+      
+      
+         
     }
     return;
 }
